@@ -8,13 +8,32 @@ export default function FloatingButtons() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
 
   useEffect(() => {
-    supabase.from('site_settings').select('phone_raw, whatsapp').single().then(({ data }) => setSettings(data))
+    const loadSettings = async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*') // <-- sadece phone_raw, whatsapp değil, tüm alanları çekiyoruz
+        .single()
+
+      if (error) {
+        console.error('site_settings error:', error)
+        return
+      }
+
+      if (data) {
+        setSettings(data as SiteSettings)
+      }
+    }
+
+    loadSettings()
   }, [])
+
+  const whatsappNumber = settings?.whatsapp || '905374092406'
+  const phoneNumber = settings?.phone_raw || '905374092406'
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
       <a
-        href={`https://wa.me/${settings?.whatsapp || '905374092406'}`}
+        href={`https://wa.me/${whatsappNumber}`}
         target="_blank"
         rel="noopener noreferrer"
         className="group relative w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg hover:bg-[#128C7E] transition-all hover:scale-110 animate-pulse-slow"
@@ -30,7 +49,7 @@ export default function FloatingButtons() {
       </a>
 
       <a
-        href={`tel:+${settings?.phone_raw || '905374092406'}`}
+        href={`tel:+${phoneNumber}`}
         className="group relative w-14 h-14 bg-secondary-400 rounded-full flex items-center justify-center shadow-lg hover:bg-secondary-500 transition-all hover:scale-110"
         aria-label="Hemen arayın"
       >
